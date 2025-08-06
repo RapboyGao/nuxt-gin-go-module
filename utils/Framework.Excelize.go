@@ -22,7 +22,9 @@ func allExamplesIncluded(colNameExamples []string, rowData []string) bool {
 	return true
 }
 
-/**
+/*
+*
+
 	@param rows 二维字符串数组，每一行表示Excel中的一行数据
 	@param colNameExamples 列名示例，用于确定标题行的位置
 	@param dataIndexOffset 数据行索引的偏移量，用于确定数据行的位置
@@ -111,6 +113,31 @@ func ReadFirstSheet1(path string, headerIndex int, dataIndex int) ([](StringDict
 	sheets := f.WorkBook.Sheets.Sheet[0]
 	rows, err := f.GetRows(sheets.Name)
 	rowsData := RowsToDict1(rows, 0, 1)
+	return rowsData, err
+}
+
+/**
+ * @param path Excel文件路径
+ * @param colNameExamples 列名示例，用于确定标题行的位置
+ * @param dataIndexOffset 数据行索引的偏移量，用于确定数据行的位置
+ * @return 转换后的字符串字典数组
+ */
+func ReadFirstSheet2(path string, colNameExamples []string, dataIndexOffset int) ([](StringDict), error) {
+	f, err := excelize.OpenFile(path)
+	var fakeResult = make([]StringDict, 0) // 用于返回结果
+	if err != nil {
+		fmt.Println(err)
+		return fakeResult, err
+	}
+	defer func() {
+		if closeErr := f.Close(); closeErr != nil {
+			fmt.Println(err)
+		}
+	}()
+	// 获取 Sheet1 上所有单元格
+	sheets := f.WorkBook.Sheets.Sheet[0]
+	rows, err := f.GetRows(sheets.Name)
+	rowsData, err := RowsToDict2(rows, colNameExamples, dataIndexOffset)
 	return rowsData, err
 }
 
