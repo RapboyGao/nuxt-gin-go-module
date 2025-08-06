@@ -6,13 +6,7 @@ import (
 	"github.com/gin-gonic/gin" // Gin Web框架
 )
 
-/**
- * 配置Gin框架运行模式
- * 根据项目目录下是否存在node_modules目录决定运行模式：
- * - 存在：开发模式（默认模式，输出详细日志）
- * - 不存在：生产模式（禁用详细日志，提高性能）
- */
-func ConfigureGinMode() {
+func GetGinMode() string {
 	// 创建指向node_modules目录的路径对象
 	path1 := paths.New("node_modules")
 
@@ -25,12 +19,27 @@ func ConfigureGinMode() {
 
 	// 判断node_modules目录是否存在
 	if path1.IsDir() && path2.NotExist() {
-		// 开发环境：存在node_modules目录，使用调试模式
+		return gin.DebugMode
+	} else {
+		return gin.ReleaseMode
+	}
+}
+
+/**
+ * 配置Gin框架运行模式
+ * 根据项目目录下是否存在node_modules目录决定运行模式：
+ * - 存在：开发模式（默认模式，输出详细日志）
+ * - 不存在：生产模式（禁用详细日志，提高性能）
+ */
+func ConfigureGinMode() {
+	mode := GetGinMode()
+	gin.SetMode(mode)
+
+	// 开发环境：存在node_modules目录，使用调试模式
+	if mode == gin.DebugMode {
 		color.New(color.FgGreen).Println("/node_modules  found: using gin.DebugMode")
-		gin.SetMode(gin.DebugMode)
 	} else {
 		// 生产环境：不存在node_modules目录，使用生产模式
 		color.New(color.FgBlue).Println("/node_modules not found: using gin.ReleaseMode")
-		gin.SetMode(gin.ReleaseMode)
 	}
 }
