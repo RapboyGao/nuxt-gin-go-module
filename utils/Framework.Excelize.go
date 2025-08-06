@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 
+	re "github.com/dlclark/regexp2"
+
 	"github.com/samber/lo"
 	"github.com/xuri/excelize/v2"
 )
@@ -202,7 +204,6 @@ func IntToCol(index int) string {
 	return result
 }
 
-
 /**
  * @param colName 要转换的列名
  * @return 转换后的结果
@@ -226,6 +227,58 @@ func ColToInt(colName string) int {
  */
 func Address(col int, row int) string {
 	return IntToCol(col) + strconv.FormatInt(int64(row), 10)
+}
+
+/**
+ * @param address 要解析的地址
+ * @return 解析后的结果
+ */
+func ParseAddress(address string) (int, int, error) {
+	col := 0
+	row := 0
+
+	// 匹配列名部分
+	regexCompiled := re.MustCompile(`[A-Za-z]+`, 0)
+	matches := make([]string, 0)
+	match, err := regexCompiled.FindStringMatch(address)
+	if err != nil {
+		return 0, 0, fmt.Errorf("匹配列名时出错: %w", err)
+	}
+	for match != nil {
+		matches = append(matches, match.String())
+		match, err = regexCompiled.FindNextMatch(match)
+		if err != nil {
+			return 0, 0, fmt.Errorf("匹配列名时出错: %w", err)
+		}
+	}
+	if len(matches) == 0 {
+		return 0, 0, errors.New("未找到列名部分")
+	}
+	col = ColToInt(matches[0])
+
+	// 匹配行号部分
+	regexCompiled = re.MustCompile(`[0-9]+`, 0)
+	matches = make([]string, 0)
+	match, err = regexCompiled.FindStringMatch(address)
+	if err != nil {
+		return 0, 0, fmt.Errorf("匹配行号时出错: %w", err)
+	}
+	for match != nil {
+		matches = append(matches, match.String())
+		match, err = regexCompiled.FindNextMatch(match)
+		if err != nil {
+			return 0, 0, fmt.Errorf("匹配行号时出错: %w", err)
+		}
+	}
+	if len(matches) == 0 {
+		return 0, 0, errors.New("未找到行号部分")
+	}
+	row, err = strconv.Atoi(matches[0])
+	if err != nil {
+		return 0, 0, fmt.Errorf("转换行号为整数时出错: %w", err)
+	}
+
+	return col, row, nil
 }
 
 /**
