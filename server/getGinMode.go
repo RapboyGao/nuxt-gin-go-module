@@ -1,10 +1,9 @@
-package nuxtGin
+package server
 
 import (
-	"fmt"
-
 	"github.com/arduino/go-paths-helper" // 文件路径操作工具
-	"github.com/gin-gonic/gin"           // Gin Web框架
+	"github.com/fatih/color"
+	"github.com/gin-gonic/gin" // Gin Web框架
 )
 
 /**
@@ -15,18 +14,23 @@ import (
  */
 func ConfigureGinMode() {
 	// 创建指向node_modules目录的路径对象
-	path := paths.New("node_modules")
+	path1 := paths.New("node_modules")
+
+	path2 := paths.New("server/api/api_default.go")
 
 	// 将路径转换为绝对路径（基于当前工作目录）
-	path.ToAbs()
+	path1.ToAbs()
+	// 转换api_default.go的绝对路径
+	path2.ToAbs()
 
 	// 判断node_modules目录是否存在
-	if path.IsDir() {
+	if path1.IsDir() && path2.NotExist() {
 		// 开发环境：存在node_modules目录，使用调试模式
-		fmt.Println("/node_modules found: using gin.DebugMode")
+		color.New(color.FgGreen).Println("/node_modules  found: using gin.DebugMode")
+		gin.SetMode(gin.DebugMode)
 	} else {
 		// 生产环境：不存在node_modules目录，使用生产模式
-		fmt.Println("/node_modules not found: using gin.ReleaseMode")
+		color.New(color.FgBlue).Println("/node_modules not found: using gin.ReleaseMode")
 		gin.SetMode(gin.ReleaseMode)
 	}
 }

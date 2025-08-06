@@ -1,5 +1,4 @@
-package nuxtGin
-
+package server
 
 import (
 	"fmt"
