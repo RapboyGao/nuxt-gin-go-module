@@ -8,7 +8,7 @@ import (
 	"net/http/httputil"
 	"net/url"
 
-	"github.com/RapboyGao/nuxt-gin-go-module/utils"
+	"github.com/RapboyGao/nuxtGin/utils"
 	"github.com/gin-gonic/gin"
 )
 

@@ -1,4 +1,4 @@
-module github.com/RapboyGao/nuxt-gin-go-module
+module github.com/RapboyGao/nuxtGin
 
 go 1.24.3
 
