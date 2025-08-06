@@ -1,4 +1,4 @@
-package server
+package nuxtGin
 
 import (
 	"github.com/arduino/go-paths-helper"   // 文件路径操作工具
