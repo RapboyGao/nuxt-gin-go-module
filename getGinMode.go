@@ -18,7 +18,7 @@ func GetGinMode() string {
 	path2.ToAbs()
 
 	// 判断node_modules目录是否存在
-	if path1.IsDir() && path2.NotExist() {
+	if path1.IsDir() || !path2.NotExist() {
 		return gin.DebugMode
 	} else {
 		return gin.ReleaseMode
