@@ -13,10 +13,48 @@ import (
 
 type StringDict map[string]string
 
+func allExamplesIncluded(colNameExamples []string, rowData []string) bool {
+	for _, example := range colNameExamples {
+		if !lo.Contains(rowData, example) {
+			return false
+		}
+	}
+	return true
+}
+
+/**
+	@param rows 二维字符串数组，每一行表示Excel中的一行数据
+	@param colNameExamples 列名示例，用于确定标题行的位置
+	@param dataIndexOffset 数据行索引的偏移量，用于确定数据行的位置
+	@return 转换后的字符串字典数组
+*/
+func RowsToDict2(rows [][]string, colNameExamples []string, dataIndexOffset int) ([](StringDict), error) {
+	colNames := make([]string, 0)
+	colNameIndex := -1
+	result := make([]StringDict, 0)
+	for i, rowData := range rows {
+		if allExamplesIncluded(colNameExamples, rowData) {
+			colNames = rowData
+			colNameIndex = i
+		} else if i > colNameIndex+dataIndexOffset {
+			rowResult := StringDict{}
+			for j, columnValue := range rowData {
+				columnName := colNames[j]
+				rowResult[columnName] = columnValue
+			}
+			result = append(result, rowResult)
+		}
+	}
+	if colNameIndex == -1 {
+		return result, errors.New("未找到标题行")
+	}
+	return result, nil
+}
+
 /*
 @return Rows转换为 []map[string]string
 */
-func RowsToDict(rows [][]string, headerIndex int, dataIndex int) [](StringDict) {
+func RowsToDict1(rows [][]string, headerIndex int, dataIndex int) [](StringDict) {
 	rowOfHeader := rows[headerIndex]   // 获取rows的标题行
 	var result = make([]StringDict, 0) // 用于返回结果
 
@@ -57,7 +95,7 @@ func ReadFirstSheetRaw(path string) ([][]string, error) {
 /*
 读取第一个Sheet并返回表格中的每行数据，以[]stringDict来表示
 */
-func ReadFirstSheet(path string, headerIndex int, dataIndex int) ([](StringDict), error) {
+func ReadFirstSheet1(path string, headerIndex int, dataIndex int) ([](StringDict), error) {
 	f, err := excelize.OpenFile(path)
 	var fakeResult = make([]StringDict, 0) // 用于返回结果
 	if err != nil {
@@ -72,7 +110,7 @@ func ReadFirstSheet(path string, headerIndex int, dataIndex int) ([](StringDict)
 	// 获取 Sheet1 上所有单元格
 	sheets := f.WorkBook.Sheets.Sheet[0]
 	rows, err := f.GetRows(sheets.Name)
-	rowsData := RowsToDict(rows, 0, 1)
+	rowsData := RowsToDict1(rows, 0, 1)
 	return rowsData, err
 }
 
