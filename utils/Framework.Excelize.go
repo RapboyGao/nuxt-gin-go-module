@@ -13,6 +13,11 @@ import (
 
 type StringDict map[string]string
 
+/**
+ * @param colNameExamples 列名示例，用于确定标题行的位置
+ * @param rowData 行数据，用于检查是否包含所有示例列名
+ * @return 是否包含所有示例列名
+ */
 func allExamplesIncluded(colNameExamples []string, rowData []string) bool {
 	for _, example := range colNameExamples {
 		if !lo.Contains(rowData, example) {
@@ -53,9 +58,12 @@ func RowsToDict2(rows [][]string, colNameExamples []string, dataIndexOffset int)
 	return result, nil
 }
 
-/*
-@return Rows转换为 []map[string]string
-*/
+/**
+ * @param rows 二维字符串数组，每一行表示Excel中的一行数据
+ * @param headerIndex 标题行索引
+ * @param dataIndex 数据行索引
+ * @return 转换后的字符串字典数组
+ */
 func RowsToDict1(rows [][]string, headerIndex int, dataIndex int) [](StringDict) {
 	rowOfHeader := rows[headerIndex]   // 获取rows的标题行
 	var result = make([]StringDict, 0) // 用于返回结果
@@ -74,9 +82,10 @@ func RowsToDict1(rows [][]string, headerIndex int, dataIndex int) [](StringDict)
 	return result
 }
 
-/*
-读取第一个Sheet并返回表格中的每行数据，以[][]string来表示
-*/
+/**
+ * @param path Excel文件路径
+ * @return 转换后的字符串字典数组
+ */
 func ReadFirstSheetRaw(path string) ([][]string, error) {
 	f, err := excelize.OpenFile(path)
 	if err != nil {
@@ -94,9 +103,12 @@ func ReadFirstSheetRaw(path string) ([][]string, error) {
 	return rows, err
 }
 
-/*
-读取第一个Sheet并返回表格中的每行数据，以[]stringDict来表示
-*/
+/**
+ * @param path Excel文件路径
+ * @param headerIndex 标题行索引
+ * @param dataIndex 数据行索引
+ * @return 转换后的字符串字典数组
+ */
 func ReadFirstSheet1(path string, headerIndex int, dataIndex int) ([](StringDict), error) {
 	f, err := excelize.OpenFile(path)
 	var fakeResult = make([]StringDict, 0) // 用于返回结果
@@ -141,7 +153,11 @@ func ReadFirstSheet2(path string, colNameExamples []string, dataIndexOffset int)
 	return rowsData, err
 }
 
-// 根据Keywords找到Rows中第一行的(从0开始)的index，并返回该行
+/**
+ * @param rows 二维字符串数组，每一行表示Excel中的一行数据
+ * @param keywords 关键词数组，用于确定标题行的位置
+ * @return 标题行索引、标题行数据、错误信息
+ */
 func HeaderIndexByKeywords(rows [][]string, keywords []string) (int, []string, error) {
 	// 获取 Sheet1 上所有单元格
 	for index, row := range rows {
@@ -157,11 +173,19 @@ func HeaderIndexByKeywords(rows [][]string, keywords []string) (int, []string, e
 	return 0, make([]string, 0), errors.New("未找到合适的行")
 }
 
+/**
+ * @param number 要转换的数字
+ * @param base 转换的基数
+ * @return 转换后的结果
+ */
 func mathLog(number float64, base float64) float64 {
 	return math.Log(number) / math.Log(base)
 }
 
-// 把数字转换为列名
+/**
+ * @param index 要转换的数字
+ * @return 转换后的结果
+ */
 func IntToCol(index int) string {
 	num := float64(index)
 	howMany := math.Floor(mathLog(num, 26)) // 有多少个 - 1
@@ -178,7 +202,11 @@ func IntToCol(index int) string {
 	return result
 }
 
-// 把列名转换为数字
+
+/**
+ * @param colName 要转换的列名
+ * @return 转换后的结果
+ */
 func ColToInt(colName string) int {
 	newStr := strings.ToUpper(colName)
 	length := len(newStr)
@@ -191,12 +219,23 @@ func ColToInt(colName string) int {
 	return res
 }
 
-// 航迹行列数字转换为Address
+/**
+ * @param col 要转换的数字
+ * @param row 要转换的数字
+ * @return 转换后的结果
+ */
 func Address(col int, row int) string {
 	return IntToCol(col) + strconv.FormatInt(int64(row), 10)
 }
 
-// 批量向excel写数据
+/**
+ * @param wb Excel文件对象
+ * @param sheet 工作表名称
+ * @param colIndex 列索引
+ * @param rowIndex 行索引
+ * @param values 要写入的值
+ * @return 错误数组
+ */
 func Write1[DataType any](wb *excelize.File, sheet string, colIndex int, rowIndex int, values [][]DataType) []error {
 	errs := make([]error, 0)
 	for rowPlus, row := range values {
@@ -209,11 +248,24 @@ func Write1[DataType any](wb *excelize.File, sheet string, colIndex int, rowInde
 	return errs
 }
 
-// 批量向excel写数据
+/**
+ * @param wb Excel文件对象
+ * @param sheet 工作表名称
+ * @param colName 列名
+ * @param rowIndex 行索引
+ * @param values 要写入的值
+ * @return 错误数组
+ */
 func Write2[DataType any](wb *excelize.File, sheet string, colName string, rowIndex int, values [][]DataType) []error {
 	return Write1(wb, sheet, ColToInt(colName), rowIndex, values)
 }
 
+/**
+ * @param wb Excel文件对象
+ * @param sheet 工作表名称
+ * @param start 起始行索引
+ * @param end 结束行索引
+ */
 func ClearRows(wb *excelize.File, sheet string, start int, end int) {
 	if start < end {
 		for i := start; i < end; i++ {
@@ -227,6 +279,12 @@ func ClearRows(wb *excelize.File, sheet string, start int, end int) {
 
 }
 
+/**
+ * @param wb Excel文件对象
+ * @param sheet 工作表名称
+ * @param start 起始行索引
+ * @param end 结束行索引
+ */
 func CopyRowsBetween(wb *excelize.File, sheet string, start int, end int) {
 	if start < end {
 		for i := start; i < end; i++ {
